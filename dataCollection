@@ -1,1 +1,221 @@
 
+//
+//  ViewController.swift
+//  dataCollectTwo
+//
+//  Created by Steven Wyks on 5/28/19.
+//  Copyright © 2019 Steven Wyks. All rights reserved.
+// 
+import UIKit
+import Firebase
+
+extension Date {
+    func string(format: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        return formatter.string(from: self)
+    }
+}
+
+class ViewController: UIViewController, UITextFieldDelegate, UIScrollViewDelegate {
+    var user : DatabaseReference!
+    var key = ""
+    var scrollView: UIScrollView!
+
+    @IBOutlet weak var submitButton: UIButton!
+    
+    @IBOutlet weak var firstNameInput: UITextField!
+    @IBOutlet weak var phoneNumber: UITextField!
+    @IBOutlet weak var emailInput: UITextField!
+    @IBOutlet weak var buildingNumber: UITextField!
+    @IBOutlet weak var apartmentNumber: UITextField!
+    @IBOutlet weak var nearestLandmark: UITextField!
+    @IBOutlet weak var streetName: UITextField!
+    @IBOutlet weak var areaName: UITextField!
+    @IBOutlet weak var emirateName: UITextField!
+
+    @IBOutlet weak var errorMessage: UILabel!
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+            Database.database().isPersistenceEnabled = true
+        }
+        //this also messes with keyboard 
+//        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+        submitButton.layer.cornerRadius = 20
+        user = Database.database().reference().child(        Date().string(format: "yyyy/MM/dd"));
+        firstNameInput.delegate = self
+        phoneNumber.delegate = self
+        emailInput.delegate = self
+        buildingNumber.delegate = self
+        apartmentNumber.delegate = self
+        nearestLandmark.delegate = self
+        streetName.delegate = self
+        areaName.delegate = self
+        emirateName.delegate = self
+
+        
+        //        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChange), name: UIResponder.keyboardWillShowNotification, object: nil)
+//
+//        scrollView = UIScrollView(frame: view.bounds)
+//
+//        view.addSubview(scrollView)
+//
+//        scrollView.delegate = self
+//        scrollView.minimumZoomScale = 0.1
+//        scrollView.maximumZoomScale = 4.0
+//        scrollView.zoomScale = 1.0
+
+    }
+//code below causes the black area when keyboard is put back down.
+//    @objc func keyboardWillShow(notification: NSNotification) {
+//        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+//            if self.view.frame.origin.y == 0 {
+//                self.view.frame.origin.y -= keyboardSize.height
+//            }
+//        }
+//    }
+//
+//    @objc func keyboardWillHide(notification: NSNotification) {
+//        if self.view.frame.origin.y != 0 {
+//            self.view.frame.origin.y = 0
+//        }
+//    }
+
+//    func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
+//        return scrollView
+//    }
+//
+//    func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
+//        return scrollView
+//    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        print("it works!")
+        switch textField {
+        case firstNameInput:
+            phoneNumber.becomeFirstResponder()
+        case phoneNumber:
+            emailInput.becomeFirstResponder()
+        case emailInput:
+            buildingNumber.becomeFirstResponder()
+        case buildingNumber:
+            apartmentNumber.becomeFirstResponder()
+        case apartmentNumber:
+            nearestLandmark.becomeFirstResponder()
+        case nearestLandmark:
+            streetName.becomeFirstResponder()
+        case streetName:
+            areaName.becomeFirstResponder()
+        case areaName:
+            emirateName.becomeFirstResponder()
+        default: textField.resignFirstResponder()
+        }
+//        if textField == firstNameInput {
+//            textField.resignFirstResponder()
+//            firstNameInput.becomeFirstResponder()
+//        } else if textField == phoneNumber {
+//            firstNameInput.resignFirstResponder()
+//            phoneNumber.becomeFirstResponder()
+//        } else if textField == emailInput {
+//            phoneNumber.resignFirstResponder()
+//            buildingNumber.becomeFirstResponder()
+//        }
+        return false
+    }
+    
+    func addFirstNames() {
+        guard let key = user.childByAutoId().key else { return; }
+            let userDetails = [
+            "key" : key,
+            "name" : firstNameInput.text! as String,
+            "number" : phoneNumber.text! as String,
+            "email" : emailInput.text! as String,
+            "building number" : buildingNumber.text! as String,
+            "apartment number" : apartmentNumber.text! as String,
+            "nearest landmark" : nearestLandmark.text! as String,
+            "street name" : streetName.text! as String,
+            "area name" : areaName.text! as String,
+            "emirate" : emirateName.text! as String,
+            "entry day" : Date().string(format: "MM/dd/yyyy")
+            ]
+            user.child(key).setValue(userDetails)
+        print("person added!")
+        
+    }
+    
+    func isValidEmail(testStr:String) -> Bool {
+//        print("validate emilId: \(testStr)")
+        let emailRegEx = "^(?:(?:(?:(?: )*(?:(?:(?:\\t| )*\\r\\n)?(?:\\t| )+))+(?: )*)|(?: )+)?(?:(?:(?:[-A-Za-z0-9!#$%&’*+/=?^_'{|}~]+(?:\\.[-A-Za-z0-9!#$%&’*+/=?^_'{|}~]+)*)|(?:\"(?:(?:(?:(?: )*(?:(?:[!#-Z^-~]|\\[|\\])|(?:\\\\(?:\\t|[ -~]))))+(?: )*)|(?: )+)\"))(?:@)(?:(?:(?:[A-Za-z0-9](?:[-A-Za-z0-9]{0,61}[A-Za-z0-9])?)(?:\\.[A-Za-z0-9](?:[-A-Za-z0-9]{0,61}[A-Za-z0-9])?)*)|(?:\\[(?:(?:(?:(?:(?:[0-9]|(?:[1-9][0-9])|(?:1[0-9][0-9])|(?:2[0-4][0-9])|(?:25[0-5]))\\.){3}(?:[0-9]|(?:[1-9][0-9])|(?:1[0-9][0-9])|(?:2[0-4][0-9])|(?:25[0-5]))))|(?:(?:(?: )*[!-Z^-~])*(?: )*)|(?:[Vv][0-9A-Fa-f]+\\.[-A-Za-z0-9._~!$&'()*+,;=:]+))\\])))(?:(?:(?:(?: )*(?:(?:(?:\\t| )*\\r\\n)?(?:\\t| )+))+(?: )*)|(?: )+)?$"
+        let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        let result = emailTest.evaluate(with: testStr)
+        return result
+    }
+    
+    func checkName() -> Bool {
+        if (firstNameInput.text?.count)! > 2 {
+            return true
+        } else {
+            return false
+        }
+    }
+    func checkNumber() -> Bool {
+        if (phoneNumber.text?.count)! == 10 {
+            return true
+        } else {
+            return false
+        }
+    }
+
+//    func validate() -> Bool {
+//
+//    }
+//
+//    func doStringContainsNumber( _string : String) -> Bool{
+//        let numberRegEx  = ".*[0-9]+.*"
+//        let testCase = NSPredicate(format:"SELF MATCHES %@", numberRegEx)
+//        let containsNumber = testCase.evaluate(with: _string)
+//        return true
+//    }
+
+    
+    @IBAction func submitData(_ sender: Any) {
+//        doStringContainsNumber(_string: "11111111")
+        let checkedEmail = isValidEmail(testStr: emailInput.text!)
+        if checkNumber() == true && checkName() == true && checkedEmail == true {
+            addFirstNames()
+            performSegue(withIdentifier: "verified" , sender: self)
+
+        }
+        else if checkedEmail == true && checkName() == false && checkNumber() == true{
+            errorMessage.text = "Please include your name!"
+        }
+        else if checkedEmail == false && checkName() == true && checkNumber() == true{
+            errorMessage.text = "Please give a valid email!"
+        }
+        else if checkedEmail == true && checkName() == true && checkNumber() == false{
+            errorMessage.text = "Please include a valid number!"
+        }
+        else if checkedEmail == false && checkName() == false && checkNumber() == false{
+            errorMessage.text = "Please include your name, email and give a valid number!"
+        }
+        else if checkedEmail == false && checkName() == false && checkNumber() == true{
+            errorMessage.text = "Please include your email and give a name!"
+        }
+        else if checkedEmail == true && checkName() == false && checkNumber() == false{
+            errorMessage.text = "Please include your name and give a valid phone number!"
+        }
+        else if checkedEmail == false && checkName() == true && checkNumber() == false{
+            errorMessage.text = "Please include your email and give a valid phone number"
+        }
+}
+//extension ViewController : UITextFieldDelegate {
+//    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+//        textField.resignFirstResponder()
+//        return true
+//    }
+//}
+}
